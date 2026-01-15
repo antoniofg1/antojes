@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antojes - Chat API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        
+        .success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .error {
+            border-left: 4px solid #f44336;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .info h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .info p {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .status.online {
+            background: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗨️ Antojes</h1>
+            <p>Chat Geolocalizado - Panel de Pruebas API</p>
+            <div style="margin-top: 10px;">
+                <span class="status online">Servidor: http://localhost:8000</span>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>ℹ️ Información Importante</h3>
+            <p><strong>API Key requerida:</strong> antojes-api-key-2026</p>
+            <p><strong>Nota:</strong> Los bundles de seguridad JWT aún no están instalados. Para usar los endpoints protegidos, primero ejecuta: <code>composer require symfony/security-bundle lexik/jwt-authentication-bundle</code></p>
+        </div>
+        
+        <div class="cards">
+            <!-- Crear Usuario -->
+            <div class="card">
+                <h2>👤 Crear Usuario</h2>
+                <form id="createUserForm">
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="userName" placeholder="Juan Pérez" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="userEmail" placeholder="juan@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña:</label>
+                        <input type="password" id="userPassword" placeholder="123456" required>
+                    </div>
+                    <button type="submit">Crear Usuario</button>
+                </form>
+                <div id="createUserResponse" class="response" style="display:none;"></div>
+            </div>
+            
+            <!-- Listar Usuarios -->
+            <div class="card">
+                <h2>📋 Listar Usuarios</h2>
+                <button onclick="listUsers()">Ver Todos los Usuarios</button>
+                <div id="listUsersResponse" class="response" style="display:none;"></div>
+            </div>
+            
+            <!-- Verificar Base de Datos -->
+            <div class="card">
+                <h2>🗄️ Estado de Base de Datos</h2>
+                <button onclick="checkDatabase()">Verificar BD</button>
+                <div id="dbResponse" class="response" style="display:none;"></div>
+            </div>
+            
+            <!-- Info del Chat General -->
+            <div class="card">
+                <h2>💬 Chat General</h2>
+                <div class="info" style="background: #fff3cd; border-left-color: #ff9800;">
+                    <p><strong>Chat General ID:</strong> 1</p>
+                    <p><strong>Tipo:</strong> GENERAL</p>
+                    <p><strong>Estado:</strong> Activo ✅</p>
+                </div>
+                <p style="color: #666; margin-top: 10px;">El chat general está creado y listo para usar. Todos los usuarios online pueden participar.</p>
+            </div>
+            
+            <!-- Endpoints Disponibles -->
+            <div class="card">
+                <h2>🔗 Endpoints API</h2>
+                <div style="font-size: 0.9em; color: #555;">
+                    <p><strong>✅ Disponibles ahora:</strong></p>
+                    <ul style="list-style: none; padding-left: 0; margin: 10px 0;">
+                        <li>• GET /api/usuarios</li>
+                        <li>• POST /api/usuarios</li>
+                        <li>• GET /api/usuarios/{id}</li>
+                        <li>• PUT /api/usuarios/{id}</li>
+                        <li>• DELETE /api/usuarios/{id}</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>⏳ Requieren JWT:</strong></p>
+                    <ul style="list-style: none; padding-left: 0; margin: 10px 0;">
+                        <li>• POST /api/login</li>
+                        <li>• GET /api/home</li>
+                        <li>• GET /api/general</li>
+                        <li>• POST /api/mensaje</li>
+                        <li>• GET /api/privado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Ubicación para pruebas -->
+            <div class="card">
+                <h2>📍 Coordenadas de Prueba</h2>
+                <div style="font-size: 0.9em; color: #555;">
+                    <p><strong>Madrid:</strong> 40.4168, -3.7038</p>
+                    <p><strong>Barcelona:</strong> 41.3851, 2.1734</p>
+                    <p><strong>Valencia:</strong> 39.4699, -0.3763</p>
+                    <p style="margin-top: 10px; color: #999;">Usa estas coordenadas para probar la búsqueda por distancia (< 5 km)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const API_KEY = 'antojes-api-key-2026';
+        
+        // Crear usuario
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                password: document.getElementById('userPassword').value
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': API_KEY
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const responseDiv = document.getElementById('createUserResponse');
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response ' + (response.ok ? 'success' : 'error');
+                responseDiv.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+                
+                if (response.ok) {
+                    document.getElementById('createUserForm').reset();
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('createUserResponse');
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+            }
+        });
+        
+        // Listar usuarios
+        async function listUsers() {
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios`, {
+                    headers: {
+                        'X-API-KEY': API_KEY
+                    }
+                });
+                
+                const result = await response.json();
+                const responseDiv = document.getElementById('listUsersResponse');
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response ' + (response.ok ? 'success' : 'error');
+                
+                if (Array.isArray(result) && result.length > 0) {
+                    let html = '<strong>Usuarios encontrados: ' + result.length + '</strong><br><br>';
+                    result.forEach(user => {
+                        html += `<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 5px;">
+                            <strong>${user.name}</strong><br>
+                            Email: ${user.email}<br>
+                            ID: ${user.id}<br>
+                            Online: ${user.online ? '🟢' : '🔴'}<br>
+                            ${user.lat && user.lng ? `📍 Ubicación: ${user.lat}, ${user.lng}` : '📍 Sin ubicación'}
+                        </div>`;
+                    });
+                    responseDiv.innerHTML = html;
+                } else {
+                    responseDiv.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                const responseDiv = document.getElementById('listUsersResponse');
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+            }
+        }
+        
+        // Verificar base de datos
+        async function checkDatabase() {
+            const responseDiv = document.getElementById('dbResponse');
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response success';
+            responseDiv.innerHTML = `
+                <strong>✅ Estado de Base de Datos:</strong><br><br>
+                <strong>Tablas creadas:</strong><br>
+                • user (usuarios)<br>
+                • chat (chats)<br>
+                • chat_member (membresías)<br>
+                • message (mensajes)<br>
+                • usuarios (tabla antigua)<br><br>
+                <strong>Chat General:</strong><br>
+                • ID: 1<br>
+                • Tipo: GENERAL<br>
+                • Estado: Activo ✅<br><br>
+                <strong>Base de datos:</strong> chat<br>
+                <strong>Host:</strong> 127.0.0.1:3306<br>
+                <strong>Motor:</strong> MySQL 8.0
+            `;
+        }
+    </script>
+</body>
+</html>
